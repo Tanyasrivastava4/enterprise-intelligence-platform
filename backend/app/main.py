@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -64,22 +64,6 @@ app.include_router(chat_router, prefix=api_prefix)
 app.include_router(agent_router, prefix=api_prefix)
 app.include_router(analytics_router, prefix=api_prefix)
 
-# Serve Frontend static build if available
-frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../frontend/dist"))
-if os.path.exists(frontend_dist):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
-    
-    from fastapi.responses import FileResponse
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # Allow API routes, docs, and health check to pass through
-        if full_path.startswith("api/") or full_path in ["docs", "redoc", "openapi.json", "health"]:
-            pass
-        file_path = os.path.join(frontend_dist, full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-        return FileResponse(os.path.join(frontend_dist, "index.html"))
-
 @app.get("/health")
 async def health_check():
     return {
@@ -87,8 +71,27 @@ async def health_check():
         "service": settings.PROJECT_NAME,
         "environment": settings.ENVIRONMENT,
         "primary_model": settings.GROQ_MODEL if settings.GROQ_API_KEY else "unconfigured",
-        "fallback_model": settings.GEMINI_MODEL if settings.GEMINI_API_KEY else "unconfigured"
+        "fallback_model": settings.GROQ_FALLBACK_MODEL
     }
+
+# Serve Frontend static build if available
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../frontend/dist"))
+if os.path.exists(frontend_dist):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+    
+    from fastapi.responses import FileResponse
+    @app.get("/")
+    async def serve_root():
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+
+    @app.get("/{path_name}")
+    async def serve_spa_page(path_name: str):
+        if path_name in ["health", "docs", "redoc", "openapi.json"] or path_name.startswith("api"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        file_path = os.path.join(frontend_dist, path_name)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
 
 if __name__ == "__main__":
     import uvicorn
