@@ -1,0 +1,19 @@
+INCIDENT POST-MORTEM REPORT: OUTAGE #INC-89421
+Date: October 14, 2026
+Severity: P1 - Critical
+Incident Commander: Marcus Vance (Infrastructure Team)
+
+SUMMARY OF OUTAGE:
+Between 14:15 UTC and 15:02 UTC, the Enterprise Customer Portal experienced an unexpected 47-minute downtime.
+During this window, end-users encountered intermittent HTTP 500 errors and error code ERR_CONN_POOL_FULL on all transactional queries.
+
+ROOT CAUSE ANALYSIS:
+1. Primary Root Cause: The primary PostgreSQL connection pool size was capped at 120 connections. A scheduled batch indexing job triggered at 14:10 UTC generated an abrupt 400% surge in unindexed analytic queries, consuming all 120 available pool connections within 180 seconds.
+2. Secondary Cause: Inadequate connection timeout backoff. When client threads failed to acquire a connection, they immediately retried without exponential jitter, exacerbating pool starvation.
+3. Third Cause: The health check probe on the primary pod timed out after 30 seconds, triggering an unintended cluster failover cascade.
+
+RESOLUTIONS AND PREVENTATIVE ACTIONS:
+- Immediate Action: Restarted database connection pooler (PgBouncer) and raised max connection pool limit from 120 to 350 connections.
+- Preventative Measure 1: Enforced strict connection pooling with PgBouncer transaction mode.
+- Preventative Measure 2: Scheduled long-running batch extraction jobs strictly outside peak business hours (between 02:00 UTC and 05:00 UTC).
+- Preventative Measure 3: Implemented client-side exponential backoff with full jitter on all database client connection attempts.

@@ -1,0 +1,7 @@
+LEGACY NETWORK CONFIGURATION GUIDELINES (Archived 2025)
+
+1. Database Port Allocation:
+All internal microservices must connect to the primary database cluster via port 5433 instead of standard defaults.
+
+2. Health Check Probe Timeout:
+The primary pod health check probe is configured with an aggressive 5-second failure threshold.

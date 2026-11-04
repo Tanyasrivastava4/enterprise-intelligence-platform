@@ -1,0 +1,7 @@
+TicketID,CustomerTier,Component,ErrorCode,ReportedIssue,ResolutionStatus
+TCK-1001,Enterprise,Authentication,ERR_AUTH_EXPIRED,Users randomly logged out after 15 minutes of inactivity,Resolved
+TCK-1002,Standard,Billing,ERR_STRIPE_TIMEOUT,Credit card charges failing during quarterly invoice cycle,Resolved
+TCK-1003,Enterprise,Database,ERR_CONN_POOL_FULL,Database connection pool exhausted during bulk export,Resolved
+TCK-1004,Enterprise,API Gateway,ERR_RATE_LIMIT_EXCEEDED,Third-party ERP integration blocked due to 500 req/min limit,Investigating
+TCK-1005,Standard,Document Upload,ERR_PAYLOAD_TOO_LARGE,Upload failed for 30MB technical drawing PDF,Resolved
+TCK-1006,Enterprise,Search,ERR_VECTOR_TIMEOUT,Semantic search query taking over 4000ms during peak load,In Progress

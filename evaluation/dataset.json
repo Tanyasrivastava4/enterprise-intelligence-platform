@@ -1,0 +1,162 @@
+[
+  {
+    "id": "eval_01",
+    "category": "factual_retrieval",
+    "question": "What is the maximum database connection pool limit allocated per cluster pod?",
+    "expected_answer": "120 concurrent connections",
+    "expected_sources": ["architecture_specs.md"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_02",
+    "category": "factual_retrieval",
+    "question": "Which port does the Authentication Service (AuthService) listen on?",
+    "expected_answer": "Port 8080",
+    "expected_sources": ["architecture_specs.md"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_03",
+    "category": "factual_retrieval",
+    "question": "What is the hard rate limit enforced per IP address before HTTP 429 is issued?",
+    "expected_answer": "500 requests per minute",
+    "expected_sources": ["architecture_specs.md"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_04",
+    "category": "factual_retrieval",
+    "question": "What was the primary root cause of outage INC-89421?",
+    "expected_answer": "The primary PostgreSQL connection pool size was capped at 120 connections and saturated by a scheduled batch indexing job.",
+    "expected_sources": ["incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_05",
+    "category": "factual_retrieval",
+    "question": "How long was the downtime duration during outage INC-89421?",
+    "expected_answer": "47 minutes (between 14:15 UTC and 15:02 UTC)",
+    "expected_sources": ["incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_06",
+    "category": "factual_retrieval",
+    "question": "What was the immediate action taken to resolve the database pool exhaustion in outage INC-89421?",
+    "expected_answer": "Restarted PgBouncer and raised max connection pool limit from 120 to 350 connections.",
+    "expected_sources": ["incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_07",
+    "category": "factual_retrieval",
+    "question": "What error code was reported in ticket TCK-1003 by the enterprise customer?",
+    "expected_answer": "ERR_CONN_POOL_FULL",
+    "expected_sources": ["customer_issues_log.csv"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_08",
+    "category": "factual_retrieval",
+    "question": "Which port does the Redis in-memory cache cluster listen on?",
+    "expected_answer": "Port 6379",
+    "expected_sources": ["architecture_specs.md"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_09",
+    "category": "cross_document_synthesis",
+    "question": "How does the connection pool configuration in the architecture specs relate to the failure observed in customer ticket TCK-1003 and incident INC-89421?",
+    "expected_answer": "The architecture spec set a static 120 connection limit which caused ERR_CONN_POOL_FULL during bulk export and batch jobs.",
+    "expected_sources": ["architecture_specs.md", "customer_issues_log.csv", "incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_10",
+    "category": "cross_document_synthesis",
+    "question": "Compare the rate limiting policy in the architecture spec with customer ticket TCK-1004.",
+    "expected_answer": "Architecture enforces 500 req/min limit, which caused customer ERP integration to be blocked in ticket TCK-1004.",
+    "expected_sources": ["architecture_specs.md", "customer_issues_log.csv"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_11",
+    "category": "cross_document_synthesis",
+    "question": "What preventative measures were recommended to avoid future connection pool exhaustion during batch jobs?",
+    "expected_answer": "Schedule batch jobs between 02:00 and 05:00 UTC, implement client exponential backoff with jitter, and use PgBouncer transaction pooling with 350 connections.",
+    "expected_sources": ["incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_12",
+    "category": "cross_document_synthesis",
+    "question": "What is the automated failover SLA for the master database replica, and how did health check timeouts affect failover during INC-89421?",
+    "expected_answer": "SLA is 28 seconds, but 30-second probe timeout triggered unintended failover cascade during high load.",
+    "expected_sources": ["architecture_specs.md", "incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_13",
+    "category": "cross_document_synthesis",
+    "question": "What customer issues are currently marked as 'In Progress' or 'Investigating' in the support log?",
+    "expected_answer": "TCK-1004 (API Gateway rate limit exceeded) and TCK-1006 (semantic search query vector timeout).",
+    "expected_sources": ["customer_issues_log.csv"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_14",
+    "category": "contradictory_queries",
+    "question": "Which database port should microservices connect to according to our documentation: 5432 or 5433?",
+    "expected_answer": "Discrepancy: architecture_specs.md specifies port 5432, while conflicting_legacy_network_guide.txt states port 5433.",
+    "expected_sources": ["architecture_specs.md", "conflicting_legacy_network_guide.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_15",
+    "category": "contradictory_queries",
+    "question": "What is the configured health check timeout for primary pod failure: 5 seconds or 30 seconds?",
+    "expected_answer": "Discrepancy: Legacy guide specifies 5 seconds, whereas postmortem specifies 30 seconds.",
+    "expected_sources": ["conflicting_legacy_network_guide.txt", "incident_postmortem_db_pool.txt"],
+    "is_answerable": true
+  },
+  {
+    "id": "eval_16",
+    "category": "unanswerable_out_of_domain",
+    "question": "What is the company's annual revenue and employee stock option vesting schedule?",
+    "expected_answer": "The provided internal documentation does not contain information to answer this question.",
+    "expected_sources": [],
+    "is_answerable": false
+  },
+  {
+    "id": "eval_17",
+    "category": "unanswerable_out_of_domain",
+    "question": "What is the administrative password for the production Kubernetes cluster?",
+    "expected_answer": "The provided internal documentation does not contain information to answer this question.",
+    "expected_sources": [],
+    "is_answerable": false
+  },
+  {
+    "id": "eval_18",
+    "category": "unanswerable_out_of_domain",
+    "question": "Which programming language was used to develop the iOS mobile application?",
+    "expected_answer": "The provided internal documentation does not contain information to answer this question.",
+    "expected_sources": [],
+    "is_answerable": false
+  },
+  {
+    "id": "eval_19",
+    "category": "unanswerable_out_of_domain",
+    "question": "What are the names of the board members and executive founders of the company?",
+    "expected_answer": "The provided internal documentation does not contain information to answer this question.",
+    "expected_sources": [],
+    "is_answerable": false
+  },
+  {
+    "id": "eval_20",
+    "category": "unanswerable_out_of_domain",
+    "question": "How do I configure Apache Kafka consumers in the data pipeline?",
+    "expected_answer": "The provided internal documentation does not contain information to answer this question.",
+    "expected_sources": [],
+    "is_answerable": false
+  }
+]
