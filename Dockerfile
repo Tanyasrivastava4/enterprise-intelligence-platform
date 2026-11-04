@@ -29,6 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir -r ./backend/requirements.txt
 
+# Pre-download and cache lightweight ONNX all-MiniLM-L6-v2 model during build
+RUN python -c "from chromadb.utils import embedding_functions; fn = embedding_functions.DefaultEmbeddingFunction(); fn(['warmup'])"
+
 # Copy backend code
 COPY backend/ ./backend/
 COPY sample_data/ ./sample_data/

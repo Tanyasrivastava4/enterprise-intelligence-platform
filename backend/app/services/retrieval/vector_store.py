@@ -2,7 +2,7 @@ import os
 from typing import List, Dict, Any, Optional
 import chromadb
 from chromadb.config import Settings as ChromaSettings
-from sentence_transformers import SentenceTransformer
+from chromadb.utils import embedding_functions
 from app.core.config import settings
 
 class VectorStore:
@@ -21,23 +21,15 @@ class VectorStore:
             settings=ChromaSettings(anonymized_telemetry=False)
         )
         self.collection_name = "enterprise_knowledge_base"
+        self.embedding_fn = embedding_functions.DefaultEmbeddingFunction()
         self.collection = self.chroma_client.get_or_create_collection(
             name=self.collection_name,
-            metadata={"hnsw:space": "cosine"}
+            metadata={"hnsw:space": "cosine"},
+            embedding_function=self.embedding_fn
         )
-        self._embedding_model = None
-
-    @property
-    def embedding_model(self):
-        """Lazy loads embedding model on first retrieval/indexing to guarantee instantaneous Uvicorn startup."""
-        if self._embedding_model is None:
-            print(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME}...")
-            self._embedding_model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
-            print("Embedding model loaded successfully.")
-        return self._embedding_model
 
     def add_chunks(self, chunks: List[Dict[str, Any]]):
-        """Generates embeddings and indexes chunks with metadata in ChromaDB."""
+        """Indexes chunks with metadata in ChromaDB using lightweight ONNX embeddings."""
         if not chunks:
             return
 
@@ -54,11 +46,8 @@ class VectorStore:
             for c in chunks
         ]
 
-        embeddings = self.embedding_model.encode(texts, convert_to_numpy=True).tolist()
-        
         self.collection.upsert(
             ids=ids,
-            embeddings=embeddings,
             documents=texts,
             metadatas=metadatas
         )
@@ -77,8 +66,6 @@ class VectorStore:
         document_ids: Optional[List[str]] = None
     ) -> List[Dict[str, Any]]:
         """Queries the vector store and returns chunks with cosine similarity scores."""
-        query_embedding = self.embedding_model.encode([query_text], convert_to_numpy=True).tolist()[0]
-        
         where_filter = None
         if document_ids and len(document_ids) == 1:
             where_filter = {"document_id": document_ids[0]}
@@ -86,7 +73,7 @@ class VectorStore:
             where_filter = {"document_id": {"$in": document_ids}}
 
         results = self.collection.query(
-            query_embeddings=[query_embedding],
+            query_texts=[query_text],
             n_results=n_results,
             where=where_filter,
             include=["documents", "metadatas", "distances"]
