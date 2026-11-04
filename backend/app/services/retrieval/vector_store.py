@@ -25,9 +25,16 @@ class VectorStore:
             name=self.collection_name,
             metadata={"hnsw:space": "cosine"}
         )
-        print(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME}...")
-        self.embedding_model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
-        print("Embedding model loaded successfully.")
+        self._embedding_model = None
+
+    @property
+    def embedding_model(self):
+        """Lazy loads embedding model on first retrieval/indexing to guarantee instantaneous Uvicorn startup."""
+        if self._embedding_model is None:
+            print(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME}...")
+            self._embedding_model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
+            print("Embedding model loaded successfully.")
+        return self._embedding_model
 
     def add_chunks(self, chunks: List[Dict[str, Any]]):
         """Generates embeddings and indexes chunks with metadata in ChromaDB."""
