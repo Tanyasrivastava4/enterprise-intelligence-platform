@@ -37,12 +37,8 @@ COPY .env.example ./.env
 # Copy compiled frontend from Stage 1 into frontend/dist
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Expose port
-EXPOSE 8000
+# Expose Render standard port
+EXPOSE 10000 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
-
-# Start Uvicorn application (adapting dynamically to Render's $PORT or 8000)
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start Uvicorn application (adapting dynamically to Render's $PORT or default 10000)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
