@@ -1,0 +1,39 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment Variables
+.env
+*.env
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/build/
+
+# Local databases & uploads
+data/
+uploads/
+*.sqlite3
+*.db
+qdrant_storage/
+chroma_storage/
+
+# Logs & temp
+logs/
+*.log
+.DS_Store
+.vscode/
+.idea/

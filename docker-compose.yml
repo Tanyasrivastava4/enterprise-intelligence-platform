@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  enterprise-intelligence-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise_ai_platform
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=False
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=qwen/qwen3.8-27b
+      - GROQ_FALLBACK_MODEL=openai/gpt-oss-120b
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - enterprise_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  enterprise_data:
